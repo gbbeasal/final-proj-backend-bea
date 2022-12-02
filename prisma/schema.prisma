@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ======== CREATING MODEL ========:
+// @id prisma know na ito yung unique identifier/primary key
+// @default tells prisma, by default what do I do kung I put a new book
+// if we add a new book, prisma will autoincrement it
+
+// if I create a new book, prisma will set the date at the time when this was created.
+// first 3 = required
+// here you put down the attributes of the db (columns)
+// if kunwari title String?, meaning nun optional yung field and ilalagay ni prisma is "null"
+// 1 model = 1 table
+
+// EXAMPLE OF ONE-TO-MANY RELATIONSHIP:
+
+// one-to-many kase pwedeng 1 author maraming authored books
+// sa one is to many, yung reference nandun sa many resource which is Book
+// so we want to put the reference to the AuthorId dun sa book model
+// author needs its own table kase
+model Author {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  firstName     String
+  lastName      String
+  books         Book[]   @relation("AuthorBook")
+}
+
+// A book belongs to 1 author
+// yung sa relation sa author attribute, same sila nung "AuthorBooks" to mean connected
+// then yung field na authorId ng Book model refers to the id ng Author model
+// REFERENCE KEY SHOULD BE NASA MANY in the one-to-many
+model Book {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  title         String
+  subtitle      String
+  published     DateTime
+  publisher     String
+  pages         Int
+  description   String
+  website       String
+  authorId      Int
+  author        Author        @relation("AuthorBook", fields: [authorId], references: [id], onDelete: Cascade)
+  genres        BookGenre[]   @relation("BookBookGenre")
+}
+//^^^ author attribute of type Author, yung @relation is key to use as reference
+// authorId = foreign key bc it refers to a foreign model/table
+
+
+// ============ EXTRA: MANY TO MANY RELATIONSHIPS ============:
+// join table si BookGenre (join table = combi of names nung 2 tables)
+model BookGenre {
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  bookId        Int
+  book          Book @relation("BookBookGenre", fields: [bookId], references: [id], onDelete: Cascade)
+  genreId       Int
+  genre         Genre @relation("GenreBookGenre", fields: [genreId], references: [id]) 
+  @@id([bookId, genreId]) // combines the id of bookId and genreId into 1 id
+                          // need for prisma to understand you're making MANY-TO-MANY tables
+}
+
+// kase there are many kinds of genres and also books can have many genres
+model Genre {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  title         String
+  books         BookGenre[] @relation("GenreBookGenre")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  firstName   String
+  lastName    String
+  userName    String
+  password    String
+  email       String    @unique // If you create a user with the same email, prisma will prevent that
+  bio         String?
+}
