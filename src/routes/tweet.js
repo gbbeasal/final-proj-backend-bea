@@ -21,6 +21,9 @@ tweetRouter.get('/tweets', async (request, response) => {
     );
     const userId = jwtSessionObject.uid;
     const tweets = await request.app.locals.prisma.tweet.findMany({
+      orderBy: {
+        createdAt: 'asc',
+      },
       where: { userId: userId },
     });
     response.send({
