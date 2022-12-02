@@ -244,7 +244,7 @@ authRouter.put("/edit-profile", async (request, response) => {
       message: filteredUser ? 'ok' : 'error',
     })
   } catch {
-    response.status(401).send({ data: null, message: 'jwt is not valid' });
+    response.status(401).send({ data: null, message: 'Update Unsuccessful - field MUST be valid' });
   }
 })
 
