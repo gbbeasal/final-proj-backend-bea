@@ -46,6 +46,7 @@ tweetRouter.get('/tweets', async (request, response) => {
 // ============== GET /tweets/:userName ==============:
 // Authenticated User = can see tweets of the user they're looking at
 // Unauthenticated/Invalid JWT Session User = can only see email and bio of the user they're looking at
+// if user they are looking for doesn't exist, it returns a prompt saying so
 
 tweetRouter.get('/tweets/:userName', async (request, response) => {
   const cookies = request.cookies;
@@ -88,10 +89,16 @@ tweetRouter.get('/tweets/:userName', async (request, response) => {
     const user = await request.app.locals.prisma.user.findUnique({
       where: { userName: userName },
     });
+
+    if (user == null) {
+      response.send({ data: null, message: 'Error - user does not exist' });
+      return;
+    }
+
     const filteredUser = pick(user, ['userName', 'bio']);
     response.send({
       user: filteredUser,
-      message: filteredUser ? 'ok' : 'error',
+      message: filteredUser ? 'ok' : 'Error',
     });
   }
 });
@@ -154,23 +161,60 @@ tweetRouter.post(
 // ============ DELETING A TWEET BY ID ============:
 // Authenticated User = can delete their own tweet via tweetId
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
+// if the tweet doesn't belong to the current user, they cannot delete it
 
 tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
+  const cookies = request.cookies;
+  const jwtSession = cookies.sessionId;
   const tweetId = parseInt(request.params.tweetId);
+
+  if (!jwtSession) {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please login' });
+    return;
+  }
+
   try {
+    const jwtSessionObject = await jwt.verify(
+      jwtSession,
+      process.env.JWT_SECRET
+    );
+    const userId = jwtSessionObject.uid;
+
+    const tweet = await request.app.locals.prisma.tweet.findUnique({
+      where: {
+        id: tweetId,
+      },
+    });
+
+    //console.log(tweet.userId)
+
+    if (userId != tweet.userId) {
+      response
+        .status(401)
+        .send({
+          data: null,
+          message:
+            'Invalid Request - You are not authorized to delete this tweet',
+        });
+      return;
+    }
+
     const deletedTweet = await request.app.locals.prisma.tweet.delete({
       where: {
         id: Number.parseInt(tweetId),
       },
     });
     response.send({
-      deletedBook: deletedTweet,
-      message: deletedTweet ? 'ok' : 'Tweet not found',
+      deletedTweet: deletedTweet,
+      message: deletedTweet ? 'Successfully deleted tweet' : 'Tweet not found',
     });
   } catch {
-    response.send({ data: null, message: 'Tweet not found' });
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please try again' });
   }
 });
-
 
 export default tweetRouter;
