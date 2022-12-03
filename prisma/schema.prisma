@@ -74,6 +74,7 @@ model User {
   email       String    @unique // If you create a user with the same email, prisma will prevent that
   bio         String?
   tweet       Tweet[]   @relation("UserTweet")
+  birthday    String
 }
 
 model Tweet {

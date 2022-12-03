@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { request } from 'express';
 import pick from 'lodash/pick.js';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
@@ -247,7 +247,6 @@ tweetRouter.put('/tweets/:tweetId', async (request, response) => {
       tweet: tweets,
       message: tweets ? 'Tweet successfully posted' : 'No tweets available',
     });
-
   } catch {
     response.status(401).send({
       data: null,

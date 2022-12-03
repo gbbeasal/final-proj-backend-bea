@@ -46,12 +46,16 @@ authRouter.get('/myaccount', async (request, response) => {
 });
 
 // ============== POST /sign-up ==============:
+// only users 18+ can sign up
 authRouter.post(
   '/sign-up',
   [
     body('firstName').notEmpty().withMessage('First Name CANNOT be empty'),
     body('lastName').notEmpty().withMessage('Last Name CANNOT be empty'),
     body('userName').notEmpty().withMessage('Username CANNOT be empty'),
+    body('birthday')
+      .notEmpty()
+      .withMessage('Date of Birth CANNOT be empty and must be mm-dd-yyyy'),
     body('email')
       .notEmpty()
       .isEmail()
@@ -76,8 +80,26 @@ authRouter.post(
       'lastName',
       'userName',
       'email',
+      'birthday',
       'password',
     ]);
+
+    // to get age: calculate month difference from current date in time
+    const dob = new Date(filteredBody.birthday);
+    const month_diff = Date.now() - dob.getTime();
+    //convert the calculated difference in date format
+    const age_dt = new Date(month_diff);
+    //extract year from date
+    const year = age_dt.getUTCFullYear();
+    //now calculate the age of the user
+    const age = Math.abs(year - 1970);
+
+    if (age < 18) {
+      response
+        .status(401)
+        .send({ data: null, message: 'Only users 18+ can sign up' });
+      return;
+    }
 
     // encrypt the password and save it to the db
     const hashedPassword = await bcrypt.hash(
