@@ -96,9 +96,8 @@ tweetRouter.get('/tweets/:userName', async (request, response) => {
   }
 });
 
-
 // ============ ADDING A BOOK ============:
-// Authenticated User = can creat a tweet
+// Authenticated User = can create their own tweet
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 tweetRouter.post(
   '/tweets',
@@ -113,7 +112,9 @@ tweetRouter.post(
     const jwtSession = cookies.sessionId;
 
     if (!jwtSession) {
-      response.status(401).send({ data: null, message: 'Not Authenticated' });
+      response
+        .status(401)
+        .send({ data: null, message: 'Invalid Request - Please login' });
       return;
     }
 
@@ -143,15 +144,17 @@ tweetRouter.post(
         message: tweets ? 'Tweet successfully posted' : 'No tweets available',
       });
     } catch {
-      response.status(401).send({
-        data: null,
-        message: 'Tweet Unsuccessful',
-      });
+      response
+        .status(401)
+        .send({ data: null, message: 'Invalid Request - Please try again' });
     }
   }
 );
 
 // ============ DELETING A TWEET BY ID ============:
+// Authenticated User = can delete their own tweet via tweetId
+// Unauthenticated/Invalid JWT Session User = will be prompted to login
+
 tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
   const tweetId = parseInt(request.params.tweetId);
   try {
@@ -169,21 +172,5 @@ tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
   }
 });
 
-// ============ UPDATING A TWEET (LIKE) ============:
-// tweetRouter.get('/tweets/:tweetId', async (request, response) => {
-//   const tweetId = parseInt(request.params.tweetId);
-//   console.log(tweetId)
-
-//   // const filteredBody = pick(request.body, ['likes']);
-//   // console.log(filteredBody)
-
-//   // const updateLike = await request.app.locals.prisma.book.findUnique({
-//   //   where: {
-//   //     id: Number.parseInt(tweetId),
-//   //   },
-//   //   data: filteredBody,
-//   // });
-//   response.send({ data: null, message: 'ok' });
-// });
 
 export default tweetRouter;
