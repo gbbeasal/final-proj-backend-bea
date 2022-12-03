@@ -103,7 +103,7 @@ tweetRouter.get('/tweets/:userName', async (request, response) => {
   }
 });
 
-// ============ ADDING A BOOK ============:
+// ============ ADDING A TWEET ============:
 // Authenticated User = can create their own tweet
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 tweetRouter.post(
@@ -191,13 +191,11 @@ tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
     //console.log(tweet.userId)
 
     if (userId != tweet.userId) {
-      response
-        .status(401)
-        .send({
-          data: null,
-          message:
-            'Invalid Request - You are not authorized to delete this tweet',
-        });
+      response.status(401).send({
+        data: null,
+        message:
+          'Invalid Request - You are not authorized to delete this tweet',
+      });
       return;
     }
 
@@ -214,6 +212,47 @@ tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
     response
       .status(401)
       .send({ data: null, message: 'Invalid Request - Please try again' });
+  }
+});
+
+// ============== PUT /tweets/:tweetId ==============:
+
+tweetRouter.put('/tweets/:tweetId', async (request, response) => {
+  const cookies = request.cookies;
+  const jwtSession = cookies.sessionId;
+  const tweetId = parseInt(request.params.tweetId);
+
+  if (!jwtSession) {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please login' });
+    return;
+  }
+
+  try {
+    await jwt.verify(jwtSession, process.env.JWT_SECRET);
+
+    const tweets = await request.app.locals.prisma.tweet.update({
+      where: {
+        id: Number.parseInt(tweetId),
+      },
+      data: {
+        likes: {
+          increment: 1,
+        },
+      },
+    });
+
+    response.send({
+      tweet: tweets,
+      message: tweets ? 'Tweet successfully posted' : 'No tweets available',
+    });
+
+  } catch {
+    response.status(401).send({
+      data: null,
+      message: 'Update Unsuccessful - field MUST be valid',
+    });
   }
 });
 

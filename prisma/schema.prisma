@@ -11,22 +11,6 @@ datasource db {
 }
 
 // ======== CREATING MODEL ========:
-// @id prisma know na ito yung unique identifier/primary key
-// @default tells prisma, by default what do I do kung I put a new book
-// if we add a new book, prisma will autoincrement it
-
-// if I create a new book, prisma will set the date at the time when this was created.
-// first 3 = required
-// here you put down the attributes of the db (columns)
-// if kunwari title String?, meaning nun optional yung field and ilalagay ni prisma is "null"
-// 1 model = 1 table
-
-// EXAMPLE OF ONE-TO-MANY RELATIONSHIP:
-
-// one-to-many kase pwedeng 1 author maraming authored books
-// sa one is to many, yung reference nandun sa many resource which is Book
-// so we want to put the reference to the AuthorId dun sa book model
-// author needs its own table kase
 // model Author {
 //   id            Int      @id @default(autoincrement())
 //   createdAt     DateTime @default(now())
@@ -36,10 +20,6 @@ datasource db {
 //   books         Book[]   @relation("AuthorBook")
 // }
 
-// // A book belongs to 1 author
-// // yung sa relation sa author attribute, same sila nung "AuthorBooks" to mean connected
-// // then yung field na authorId ng Book model refers to the id ng Author model
-// // REFERENCE KEY SHOULD BE NASA MANY in the one-to-many
 // model Book {
 //   id            Int      @id @default(autoincrement())
 //   createdAt     DateTime @default(now())
