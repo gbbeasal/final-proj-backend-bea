@@ -8,22 +8,22 @@ import jwt from 'jsonwebtoken';
 const authRouter = express.Router();
 const SALT_ROUNDS = 10;
 
-// ============== GET /me ==============:
+// ============== GET /myaccount ==============:
+// Authenticated User = can see their own information
+// Unauthenticated User = will be prompted to login
 
-authRouter.get('/me', async (request, response) => {
+authRouter.get('/myaccount', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
-  // console.log('cookies: ', cookies);
-  // console.log('jwtSession: ', jwtSession);
 
-  // if wala kang jwt session == di ka authenticated, then:
+  // Checks if you have a JWT Session and implements logic accordingly
   if (!jwtSession) {
-    response.status(401).send({ data: null, message: 'Not Authenticated' });
+    response
+      .status(401)
+      .send({ data: null, message: 'Not Authenticated - Please login' });
     return;
   }
 
-  // verify if jwt is something WE provisioned, return user info if yes
-  // verify func will return unhashed value ni jwtSession
   try {
     const jwtSessionObject = await jwt.verify(
       jwtSession,
@@ -39,7 +39,9 @@ authRouter.get('/me', async (request, response) => {
       message: filteredUser ? 'ok' : 'error',
     });
   } catch {
-    response.status(401).send({ data: null, message: 'jwt is not valid' });
+    response
+      .status(401)
+      .send({ data: null, message: 'Not Authenticated - Please login' });
   }
 });
 
@@ -157,7 +159,6 @@ authRouter.post(
     }
 
     // comparison of saved password and entered password:
-    // bcrypt.compare(saved_pw, entered_pw)
     const hashedPassword = user.password;
     const isSamePassword = await bcrypt.compare(
       filteredBody.password,
@@ -179,7 +180,6 @@ authRouter.post(
       email: user.email,
     };
     // create JWT Session:
-    // JWT_Secret = what the function will use to create the signature for your JWT
     const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
     const jwtSession = await jwt.sign(
       jwtSessionObject,
@@ -192,9 +192,6 @@ authRouter.post(
     // console.log("jwtSession: ", jwtSession);
 
     // attach jwt to cookie:
-    // a cookie gets sent to every request, helpful for the front-end guys
-    // to not worry about storing the jwt elsewhere and attach it to the header
-    // cookie name, jwtSession is yung content ng cookie then yung 3rd field is headers
     response.cookie('sessionId', jwtSession, {
       httpOnly: true, // only server can read cookie, not browser
       maxAge: maxAge * 1000, // time in seconds
@@ -211,7 +208,7 @@ authRouter.post(
 );
 
 // ============== PUT /edit-profile ==============:
-authRouter.put("/edit-profile", async (request, response) => {
+authRouter.put('/edit-profile', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
 
@@ -227,11 +224,7 @@ authRouter.put("/edit-profile", async (request, response) => {
     );
     const userId = jwtSessionObject.uid;
 
-    const filteredBody = pick(request.body, [
-      "password",
-      "userName",
-      "bio"
-  ])
+    const filteredBody = pick(request.body, ['password', 'userName', 'bio']);
 
     const user = await request.app.locals.prisma.user.update({
       where: { id: userId },
@@ -242,11 +235,14 @@ authRouter.put("/edit-profile", async (request, response) => {
     response.send({
       user: filteredUser,
       message: filteredUser ? 'ok' : 'error',
-    })
+    });
   } catch {
-    response.status(401).send({ data: null, message: 'Update Unsuccessful - field MUST be valid' });
+    response.status(401).send({
+      data: null,
+      message: 'Update Unsuccessful - field MUST be valid',
+    });
   }
-})
+});
 
 // ============== POST /sign-out ==============:
 // expire the cookie by making the maxAge = 1
