@@ -1,0 +1,28 @@
+{
+  "user": [
+    {
+      "firstName": "jon",
+      "lastName": "lao",
+      "userName": "jlao01",
+      "email": "jlao@gmail.com",
+      "birthday": "01/16/1998",
+      "password": "passwordnijon"
+    },
+    {
+      "firstName": "mika",
+      "lastName": "salud",
+      "userName": "mikacute11",
+      "email": "mikasalud@yahoo.com",
+      "birthday": "05/22/1980",
+      "password": "passwordnimika"
+    },
+    {
+      "firstName": "aldwin",
+      "lastName": "castro",
+      "userName": "ajCast",
+      "email": "superrangeraj@gmail.com",
+      "birthday": "07/31/2002",
+      "password": "passwordnialdwin"
+    }
+  ]
+}

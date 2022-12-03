@@ -147,9 +147,9 @@ authRouter.post(
   }
 );
 
-// ============== POST /sign-in ==============:
+// ============== POST /sign-in/email ==============:
 authRouter.post(
-  '/sign-in',
+  '/sign-in/email',
   [
     body('email')
       .notEmpty()
@@ -200,6 +200,87 @@ authRouter.post(
     const jwtSessionObject = {
       uid: user.id,
       email: user.email,
+    };
+    // create JWT Session:
+    const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
+    const jwtSession = await jwt.sign(
+      jwtSessionObject,
+      process.env.JWT_SECRET,
+      {
+        expiresIn: maxAge, // this jwt will expire in 24 hours
+      }
+    );
+
+    // console.log("jwtSession: ", jwtSession);
+
+    // attach jwt to cookie:
+    response.cookie('sessionId', jwtSession, {
+      httpOnly: true, // only server can read cookie, not browser
+      maxAge: maxAge * 1000, // time in seconds
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production' ? true : false,
+      // ^^^ enable secure https if nasa prod environment na
+    });
+
+    response.send({
+      data: filteredUser,
+      message: user ? 'Welcome' : 'Error, user login unsuccessful',
+    });
+  }
+);
+
+// ============== POST /sign-in/username ==============:
+authRouter.post(
+  '/sign-in/username',
+  [
+    body('userName')
+      .notEmpty()
+      .withMessage('Username CANNOT be empty'),
+    body('password')
+      .notEmpty()
+      .isLength({ min: 8 })
+      .withMessage('Password CANNOT be empty'),
+  ],
+  async (request, response) => {
+    const errors = validationResult(request);
+    // if may laman si error, we send a reponse containing all the errors
+    if (!errors.isEmpty()) {
+      response.status(400).json({ errors: errors.array() });
+      return;
+    }
+
+    const filteredBody = pick(request.body, ['userName', 'password']);
+
+    // finds the user's email in the database
+    const user = await request.app.locals.prisma.user.findUnique({
+      where: { userName: filteredBody.userName },
+    });
+
+    if (!user) {
+      response.status(404).json({ message: 'Invalid Username or Password' });
+      return;
+    }
+
+    // comparison of saved password and entered password:
+    const hashedPassword = user.password;
+    const isSamePassword = await bcrypt.compare(
+      filteredBody.password,
+      hashedPassword
+    );
+
+    // if password doesn't match:
+    if (!isSamePassword) {
+      // response.send({ message: 'mali ka boi' });
+      response.status(404).json({ message: 'Invalid Username or Password' });
+    }
+
+    // selecting things to omit from the response:
+    const filteredUser = omit(user, ['id', 'password']);
+
+    // create jWT obj that contains info:
+    const jwtSessionObject = {
+      uid: user.id,
+      userName: user.userName,
     };
     // create JWT Session:
     const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
