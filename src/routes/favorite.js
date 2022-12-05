@@ -71,19 +71,46 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
 
     // if fave exists, delete it. Else continue with creation
 
-    const favorites = await request.app.locals.prisma.favorite.create({
-      data: {
-        tweetId: tweetId,
-        userId: userId,
+    const favorites = await request.app.locals.prisma.favorite.findUnique({
+      where: {
+        userId_tweetId: {
+          userId: userId,
+          tweetId: tweetId,
+        },
       },
     });
 
-    const filteredFavorites = omit(favorites, ['userId']);
+    if (!favorites) {
+      const favorites = await request.app.locals.prisma.favorite.create({
+        data: {
+          tweetId: tweetId,
+          userId: userId,
+        },
+      });
+
+      const filteredFavorites = omit(favorites, ['userId']);
+      response.send({
+        favorites: filteredFavorites,
+        message: filteredFavorites
+          ? 'Tweet successfully added to favorites'
+          : 'Favorite Unsuccessful',
+      });
+    }
+
+    const unfavorite = await request.app.locals.prisma.favorite.delete({
+      where: {
+        userId_tweetId: {
+          userId: userId,
+          tweetId: tweetId,
+        },
+      },
+    });
+
     response.send({
-      favorites: filteredFavorites,
-      message: filteredFavorites
-        ? 'Tweet successfully added to favorites'
-        : 'Favorite Unsuccessful',
+      favorites: unfavorite,
+      message: unfavorite
+        ? 'Tweet successfully removed from favorites'
+        : 'Unfavorite Unsuccessful',
     });
   } catch {
     response
