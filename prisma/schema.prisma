@@ -62,7 +62,8 @@ datasource db {
 // }
 
 //======================
-
+// 1 user = many tweets, 1 user = many replies
+//======================
 model User {
   id          Int       @id @default(autoincrement())
   createdAt   DateTime  @default(now())
@@ -74,15 +75,31 @@ model User {
   email       String    @unique // If you create a user with the same email, prisma will prevent that
   bio         String?
   tweet       Tweet[]   @relation("UserTweet")
+  reply       Reply[]   @relation("UserReply")
   birthday    String
 }
 
+//======================
+// 1 tweet = many replies
+//======================
 model Tweet {
   id            Int       @id @default(autoincrement())
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   content       String
-  likes         Int       @default(0)
+  // likes         Int       @default(0)
   userId        Int
   user          User      @relation("UserTweet", fields: [userId], references: [id], onDelete: Cascade)
+  reply         Reply[]   @relation("TweetReply")
+}
+
+model Reply {
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  content       String
+  tweetId       Int
+  tweet         Tweet      @relation("TweetReply", fields: [tweetId], references: [id], onDelete: Cascade)
+  userId        Int
+  user          User      @relation("UserReply", fields: [userId], references: [id], onDelete: Cascade)
 }

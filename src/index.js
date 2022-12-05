@@ -1,7 +1,8 @@
 import express, { response } from "express";
 import { PrismaClient } from "@prisma/client";
-import tweetRouter from "./routes/tweet.js";
 import authRouter from "./routes/auth.js";
+import tweetRouter from "./routes/tweet.js";
+import replyRouter from "./routes/reply.js";
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -12,6 +13,7 @@ const PORT = 4000;
 
 app.use(authRouter);
 app.use(tweetRouter);
+app.use(replyRouter);
 
 // express allows us to define global variables using app.locals
 // yung prisma sa L6 nagrerefer sa L12; now we can reuse

@@ -31,6 +31,9 @@ tweetRouter.get('/tweets', async (request, response) => {
         createdAt: 'asc',
       },
       where: { userId: userId },
+      include: {
+        reply: true,
+      },
     });
     response.send({
       tweets: tweets,
@@ -141,7 +144,7 @@ tweetRouter.post(
       const tweets = await request.app.locals.prisma.tweet.create({
         data: {
           content: request.body.content,
-          likes: 0,
+          // likes: 0,
           userId: userId,
         },
       });
@@ -215,9 +218,12 @@ tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
   }
 });
 
-// ============== PUT /tweets/:tweetId ==============:
+// ============ GETTING A TWEET BY ID ============:
+// Authenticated User = can delete their own tweet via tweetId
+// Unauthenticated/Invalid JWT Session User = will be prompted to login
+// if the tweet doesn't belong to the current user, they cannot delete it
 
-tweetRouter.put('/tweets/:tweetId', async (request, response) => {
+tweetRouter.get('/tweets/specific/:tweetId', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
   const tweetId = parseInt(request.params.tweetId);
@@ -232,27 +238,64 @@ tweetRouter.put('/tweets/:tweetId', async (request, response) => {
   try {
     await jwt.verify(jwtSession, process.env.JWT_SECRET);
 
-    const tweets = await request.app.locals.prisma.tweet.update({
+    const tweet = await request.app.locals.prisma.tweet.findUnique({
       where: {
-        id: Number.parseInt(tweetId),
+        id: tweetId,
       },
-      data: {
-        likes: {
-          increment: 1,
-        },
+      include: {
+        reply: true,
       },
     });
 
     response.send({
-      tweet: tweets,
-      message: tweets ? 'Tweet successfully posted' : 'No tweets available',
+      tweet: tweet,
+      message: tweet ? 'ok' : 'Tweet not found',
     });
   } catch {
-    response.status(401).send({
-      data: null,
-      message: 'Update Unsuccessful - field MUST be valid',
-    });
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please try again' });
   }
 });
+
+// ============== PUT /tweets/:tweetId ==============:
+
+// tweetRouter.put('/tweets/:tweetId', async (request, response) => {
+//   const cookies = request.cookies;
+//   const jwtSession = cookies.sessionId;
+//   const tweetId = parseInt(request.params.tweetId);
+
+//   if (!jwtSession) {
+//     response
+//       .status(401)
+//       .send({ data: null, message: 'Invalid Request - Please login' });
+//     return;
+//   }
+
+//   try {
+//     await jwt.verify(jwtSession, process.env.JWT_SECRET);
+
+//     const tweets = await request.app.locals.prisma.tweet.update({
+//       where: {
+//         id: Number.parseInt(tweetId),
+//       },
+//       data: {
+//         likes: {
+//           increment: 1,
+//         },
+//       },
+//     });
+
+//     response.send({
+//       tweet: tweets,
+//       message: tweets ? 'Tweet successfully posted' : 'No tweets available',
+//     });
+//   } catch {
+//     response.status(401).send({
+//       data: null,
+//       message: 'Update Unsuccessful - field MUST be valid',
+//     });
+//   }
+// });
 
 export default tweetRouter;
