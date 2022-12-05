@@ -10,72 +10,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ======== CREATING MODEL ========:
-// model Author {
-//   id            Int      @id @default(autoincrement())
-//   createdAt     DateTime @default(now())
-//   updatedAt     DateTime @updatedAt
-//   firstName     String
-//   lastName      String
-//   books         Book[]   @relation("AuthorBook")
-// }
-
-// model Book {
-//   id            Int      @id @default(autoincrement())
-//   createdAt     DateTime @default(now())
-//   updatedAt     DateTime @updatedAt
-//   title         String
-//   subtitle      String
-//   published     DateTime
-//   publisher     String
-//   pages         Int
-//   description   String
-//   website       String
-//   authorId      Int
-//   author        Author        @relation("AuthorBook", fields: [authorId], references: [id], onDelete: Cascade)
-//   genres        BookGenre[]   @relation("BookBookGenre")
-// }
-// //^^^ author attribute of type Author, yung @relation is key to use as reference
-// // authorId = foreign key bc it refers to a foreign model/table
-
-
-// // ============ EXTRA: MANY TO MANY RELATIONSHIPS ============:
-// // join table si BookGenre (join table = combi of names nung 2 tables)
-// model BookGenre {
-//   createdAt     DateTime @default(now())
-//   updatedAt     DateTime @updatedAt
-//   bookId        Int
-//   book          Book @relation("BookBookGenre", fields: [bookId], references: [id], onDelete: Cascade)
-//   genreId       Int
-//   genre         Genre @relation("GenreBookGenre", fields: [genreId], references: [id]) 
-//   @@id([bookId, genreId]) // combines the id of bookId and genreId into 1 id
-//                           // need for prisma to understand you're making MANY-TO-MANY tables
-// }
-
-// // kase there are many kinds of genres and also books can have many genres
-// model Genre {
-//   id            Int      @id @default(autoincrement())
-//   createdAt     DateTime @default(now())
-//   updatedAt     DateTime @updatedAt
-//   title         String
-//   books         BookGenre[] @relation("GenreBookGenre")
-// }
-
 //======================
-// 1 user = many tweets, 1 user = many replies
+// 1 user = many tweets, 1 user = many replies, 1 user = many favorites
 //======================
 model User {
-  id          Int       @id @default(autoincrement())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          Int             @id @default(autoincrement())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   firstName   String
   lastName    String
-  userName    String    @unique
+  userName    String          @unique
   password    String
-  email       String    @unique // If you create a user with the same email, prisma will prevent that
+  email       String          @unique // If you create a user with the same email, prisma will prevent that
   bio         String?
-  tweet       Tweet[]   @relation("UserTweet")
-  reply       Reply[]   @relation("UserReply")
+  tweet       Tweet[]         @relation("UserTweet")
+  reply       Reply[]         @relation("UserReply")
+  favorite    Favorite[]      @relation("UserFavorite")
   birthday    String
 }
 
@@ -83,23 +33,33 @@ model User {
 // 1 tweet = many replies
 //======================
 model Tweet {
-  id            Int       @id @default(autoincrement())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   content       String
-  // likes         Int       @default(0)
   userId        Int
-  user          User      @relation("UserTweet", fields: [userId], references: [id], onDelete: Cascade)
-  reply         Reply[]   @relation("TweetReply")
+  user          User          @relation("UserTweet", fields: [userId], references: [id], onDelete: Cascade)
+  reply         Reply[]       @relation("TweetReply")
+  favorite      Favorite[]    @relation("TweetFavorite")
 }
 
 model Reply {
-  id            Int       @id @default(autoincrement())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   content       String
   tweetId       Int
-  tweet         Tweet      @relation("TweetReply", fields: [tweetId], references: [id], onDelete: Cascade)
+  tweet         Tweet         @relation("TweetReply", fields: [tweetId], references: [id], onDelete: Cascade)
   userId        Int
-  user          User      @relation("UserReply", fields: [userId], references: [id], onDelete: Cascade)
+  user          User          @relation("UserReply", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  tweetId       Int
+  tweet         Tweet         @relation("TweetFavorite", fields: [tweetId], references: [id], onDelete: Cascade)
+  userId        Int
+  user          User          @relation("UserFavorite", fields: [userId], references: [id], onDelete: Cascade)
 }

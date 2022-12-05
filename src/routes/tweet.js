@@ -9,6 +9,39 @@ const tweetRouter = express.Router();
 // Authenticated User = can see their tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
+tweetRouter.get('/alltweets', async (request, response) => {
+  const cookies = request.cookies;
+  const jwtSession = cookies.sessionId;
+
+  if (!jwtSession) {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please login' });
+    return;
+  }
+
+  try {
+    await jwt.verify(jwtSession, process.env.JWT_SECRET);
+    const tweets = await request.app.locals.prisma.tweet.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    response.send({
+      Alltweets: tweets,
+      message: tweets ? 'ok' : 'no tweets found',
+    });
+  } catch {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please try again' });
+  }
+});
+
+// ============ GETTING ALL MY TWEETS ============:
+// Authenticated User = can see their tweets
+// Unauthenticated/Invalid JWT Session User = will be prompted to login
+
 tweetRouter.get('/tweets', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
