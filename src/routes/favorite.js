@@ -95,6 +95,7 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
           ? 'Tweet successfully added to favorites'
           : 'Favorite Unsuccessful',
       });
+      return;
     }
 
     const unfavorite = await request.app.locals.prisma.favorite.delete({
