@@ -54,12 +54,13 @@ model Reply {
   user          User          @relation("UserReply", fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// need to use @@id to define ID with multiple fields
 model Favorite {
-  id            Int           @id @default(autoincrement())
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   tweetId       Int
   tweet         Tweet         @relation("TweetFavorite", fields: [tweetId], references: [id], onDelete: Cascade)
   userId        Int
   user          User          @relation("UserFavorite", fields: [userId], references: [id], onDelete: Cascade)
+  @@id([userId, tweetId])
 }

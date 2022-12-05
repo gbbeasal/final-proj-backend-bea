@@ -1,6 +1,4 @@
 import express, { request } from 'express';
-import pick from 'lodash/pick.js';
-import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import omit from 'lodash/omit.js';
 
@@ -28,9 +26,6 @@ favoriteRouter.get('/myfavorites', async (request, response) => {
     );
     const userId = jwtSessionObject.uid;
 
-    
-
-
     const favorites = await request.app.locals.prisma.favorite.findMany({
       orderBy: {
         createdAt: 'desc',
@@ -39,7 +34,6 @@ favoriteRouter.get('/myfavorites', async (request, response) => {
       include: {
         tweet: true,
       },
-
     });
 
     response.send({
@@ -75,6 +69,8 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
     );
     const userId = jwtSessionObject.uid;
 
+    // if fave exists, delete it. Else continue with creation
+
     const favorites = await request.app.locals.prisma.favorite.create({
       data: {
         tweetId: tweetId,
@@ -84,7 +80,7 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
 
     const filteredFavorites = omit(favorites, ['userId']);
     response.send({
-      user: filteredFavorites,
+      favorites: filteredFavorites,
       message: filteredFavorites
         ? 'Tweet successfully added to favorites'
         : 'Favorite Unsuccessful',
