@@ -28,12 +28,12 @@ tweetRouter.get('/tweets', async (request, response) => {
     const userId = jwtSessionObject.uid;
     const tweets = await request.app.locals.prisma.tweet.findMany({
       orderBy: {
-        createdAt: 'asc',
+        createdAt: 'desc',
       },
       where: { userId: userId },
-      include: {
-        reply: true,
-      },
+      // include: {
+      //   reply: true,
+      // },
     });
     response.send({
       tweets: tweets,
@@ -79,7 +79,7 @@ tweetRouter.get('/tweets/:userName', async (request, response) => {
 
     const tweets = await request.app.locals.prisma.tweet.findMany({
       orderBy: {
-        createdAt: 'asc',
+        createdAt: 'desc',
       },
       where: { userId: user.id },
     });
@@ -242,9 +242,9 @@ tweetRouter.get('/tweets/specific/:tweetId', async (request, response) => {
       where: {
         id: tweetId,
       },
-      include: {
-        reply: true,
-      },
+      // include: {
+      //   reply: true,
+      // },
     });
 
     response.send({
@@ -257,45 +257,5 @@ tweetRouter.get('/tweets/specific/:tweetId', async (request, response) => {
       .send({ data: null, message: 'Invalid Request - Please try again' });
   }
 });
-
-// ============== PUT /tweets/:tweetId ==============:
-
-// tweetRouter.put('/tweets/:tweetId', async (request, response) => {
-//   const cookies = request.cookies;
-//   const jwtSession = cookies.sessionId;
-//   const tweetId = parseInt(request.params.tweetId);
-
-//   if (!jwtSession) {
-//     response
-//       .status(401)
-//       .send({ data: null, message: 'Invalid Request - Please login' });
-//     return;
-//   }
-
-//   try {
-//     await jwt.verify(jwtSession, process.env.JWT_SECRET);
-
-//     const tweets = await request.app.locals.prisma.tweet.update({
-//       where: {
-//         id: Number.parseInt(tweetId),
-//       },
-//       data: {
-//         likes: {
-//           increment: 1,
-//         },
-//       },
-//     });
-
-//     response.send({
-//       tweet: tweets,
-//       message: tweets ? 'Tweet successfully posted' : 'No tweets available',
-//     });
-//   } catch {
-//     response.status(401).send({
-//       data: null,
-//       message: 'Update Unsuccessful - field MUST be valid',
-//     });
-//   }
-// });
 
 export default tweetRouter;
