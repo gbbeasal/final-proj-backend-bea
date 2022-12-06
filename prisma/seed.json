@@ -47,6 +47,88 @@
       "email": "tksal@gmail.com",
       "birthday": "09/09/1999",
       "password": "newpassko2"
+    }, 
+    {
+      "firstName": "Mae",
+      "lastName": "Demagante",
+      "userName": "securityMae",
+      "email": "MD@gmail.com",
+      "birthday": "11/21/1994",
+      "password": "passwordnimae"
+    },
+    {
+      "firstName": "Paolo",
+      "lastName": "Evangelista",
+      "userName": "ple123",
+      "email": "plecious@gmail.com",
+      "birthday": "06/25/2000",
+      "password": "passwordniple",
+      "bio": "im cool"
+    },
+    {
+      "firstName": "Pinky",
+      "lastName": "Salvanerra",
+      "userName": "pinkylicious",
+      "email": "pinkyyyyy@gmail.com",
+      "birthday": "02/16/2001",
+      "password": "passwordnipinky",
+      "bio": "im cool pinky"
+    },
+    {
+      "firstName": "Aina",
+      "lastName": "Bonifacio",
+      "userName": "ainakopo",
+      "email": "eyena@gmail.com",
+      "birthday": "01/11/1980",
+      "password": "passwordniaina"
+    },
+    {
+      "firstName": "Paul Johansen",
+      "lastName": "Pagala",
+      "userName": "pjdj",
+      "email": "pjdj@gmail.com",
+      "birthday": "03/18/1988",
+      "password": "passwordnipj"
+    },
+    {
+      "firstName": "Precious",
+      "lastName": "Sorita",
+      "userName": "preshHHHH",
+      "email": "sherp@gmail.com",
+      "birthday": "04/12/1999",
+      "password": "passwordniprecious"
+    },
+    {
+      "firstName": "Ariana",
+      "lastName": "De Guzman",
+      "userName": "Arry",
+      "email": "ariana@gmail.com",
+      "birthday": "07/22/1996",
+      "password": "passwordniarry"
+    },
+    {
+      "firstName": "Raymund",
+      "lastName": "Marcelino",
+      "userName": "monmonmon",
+      "email": "mray@gmail.com",
+      "birthday": "09/22/1994",
+      "password": "passwordnimon"
+    },
+    {
+      "firstName": "Rezilen",
+      "lastName": "Jayme",
+      "userName": "rezizi",
+      "email": "rjme@gmail.com",
+      "birthday": "07/20/1999",
+      "password": "passwordnirez"
+    },
+    {
+      "firstName": "Carl Anderson",
+      "lastName": "Lei Yee",
+      "userName": "carlehihoo",
+      "email": "carljarl@gmail.com",
+      "birthday": "01/20/1997",
+      "password": "passwordnicarl"
     }
   ]
 }
