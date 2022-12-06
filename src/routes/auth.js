@@ -75,75 +75,82 @@ authRouter.post(
       return;
     }
 
-    const filteredBody = pick(request.body, [
-      'firstName',
-      'lastName',
-      'userName',
-      'email',
-      'birthday',
-      'password',
-    ]);
+    try {
+      const filteredBody = pick(request.body, [
+        'firstName',
+        'lastName',
+        'userName',
+        'email',
+        'birthday',
+        'password',
+      ]);
 
-    // to get age: calculate month difference from current date in time
-    const dob = new Date(filteredBody.birthday);
-    const month_diff = Date.now() - dob.getTime();
-    //convert the calculated difference in date format
-    const age_dt = new Date(month_diff);
-    //extract year from date
-    const year = age_dt.getUTCFullYear();
-    //now calculate the age of the user
-    const age = Math.abs(year - 1970);
+      // to get age: calculate month difference from current date in time
+      const dob = new Date(filteredBody.birthday);
+      const month_diff = Date.now() - dob.getTime();
+      //convert the calculated difference in date format
+      const age_dt = new Date(month_diff);
+      //extract year from date
+      const year = age_dt.getUTCFullYear();
+      //now calculate the age of the user
+      const age = Math.abs(year - 1970);
 
-    if (age < 18) {
-      response
-        .status(401)
-        .send({ data: null, message: 'Only users 18+ can sign up' });
-      return;
-    }
-
-    // encrypt the password and save it to the db
-    const hashedPassword = await bcrypt.hash(
-      filteredBody.password,
-      SALT_ROUNDS
-    );
-    filteredBody.password = hashedPassword;
-
-    // response.send({ data: filteredBody, message: "ok"})
-    const user = await request.app.locals.prisma.user.create({
-      data: filteredBody,
-    });
-
-    const filteredUser = omit(user, ['id', 'password']);
-
-    // create jWT obj that contains info:
-    const jwtSessionObject = {
-      uid: user.id,
-      email: user.email,
-    };
-    // create JWT Session:
-    const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
-    const jwtSession = await jwt.sign(
-      jwtSessionObject,
-      process.env.JWT_SECRET,
-      {
-        expiresIn: maxAge, // this jwt will expire in 24 hours
+      if (age < 18) {
+        response
+          .status(401)
+          .send({ data: null, message: 'Only users 18+ can sign up' });
+        return;
       }
-    );
 
-    // attach jwt to cookie:
-    response.cookie('sessionId', jwtSession, {
-      httpOnly: true, // only server can read cookie, not browser
-      maxAge: maxAge * 1000, // time in seconds
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' ? true : false,
-    });
+      // encrypt the password and save it to the db
+      const hashedPassword = await bcrypt.hash(
+        filteredBody.password,
+        SALT_ROUNDS
+      );
+      filteredBody.password = hashedPassword;
 
-    response.send({
-      data: filteredUser,
-      message: user
-        ? 'New user added successfully'
-        : 'Error, user creation unsuccessful',
-    });
+      // response.send({ data: filteredBody, message: "ok"})
+      const user = await request.app.locals.prisma.user.create({
+        data: filteredBody,
+      });
+
+      const filteredUser = omit(user, ['id', 'password']);
+
+      // create jWT obj that contains info:
+      const jwtSessionObject = {
+        uid: user.id,
+        email: user.email,
+      };
+      // create JWT Session:
+      const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
+      const jwtSession = await jwt.sign(
+        jwtSessionObject,
+        process.env.JWT_SECRET,
+        {
+          expiresIn: maxAge, // this jwt will expire in 24 hours
+        }
+      );
+
+      // attach jwt to cookie:
+      response.cookie('sessionId', jwtSession, {
+        httpOnly: true, // only server can read cookie, not browser
+        maxAge: maxAge * 1000, // time in seconds
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+      });
+
+      response.send({
+        data: filteredUser,
+        message: user
+          ? 'New user added successfully'
+          : 'Error, user creation unsuccessful',
+      });
+    } catch {
+      response.send({
+        data: null,
+        message: 'Invalid Request - Please try again',
+      });
+    }
   }
 );
 
@@ -168,64 +175,71 @@ authRouter.post(
       return;
     }
 
-    const filteredBody = pick(request.body, ['email', 'password']);
+    try {
+      const filteredBody = pick(request.body, ['email', 'password']);
 
-    // finds the user's email in the database
-    const user = await request.app.locals.prisma.user.findUnique({
-      where: { email: filteredBody.email },
-    });
+      // finds the user's email in the database
+      const user = await request.app.locals.prisma.user.findUnique({
+        where: { email: filteredBody.email },
+      });
 
-    if (!user) {
-      response.status(404).json({ message: 'Invalid Email or Password' });
-      return;
-    }
-
-    // comparison of saved password and entered password:
-    const hashedPassword = user.password;
-    const isSamePassword = await bcrypt.compare(
-      filteredBody.password,
-      hashedPassword
-    );
-
-    // if password doesn't match:
-    if (!isSamePassword) {
-      // response.send({ message: 'mali ka boi' });
-      response.status(404).json({ message: 'Invalid Email or Password' });
-    }
-
-    // selecting things to omit from the response:
-    const filteredUser = omit(user, ['id', 'password']);
-
-    // create jWT obj that contains info:
-    const jwtSessionObject = {
-      uid: user.id,
-      email: user.email,
-    };
-    // create JWT Session:
-    const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
-    const jwtSession = await jwt.sign(
-      jwtSessionObject,
-      process.env.JWT_SECRET,
-      {
-        expiresIn: maxAge, // this jwt will expire in 24 hours
+      if (!user) {
+        response.status(404).json({ message: 'Invalid Email or Password' });
+        return;
       }
-    );
 
-    // console.log("jwtSession: ", jwtSession);
+      // comparison of saved password and entered password:
+      const hashedPassword = user.password;
+      const isSamePassword = await bcrypt.compare(
+        filteredBody.password,
+        hashedPassword
+      );
 
-    // attach jwt to cookie:
-    response.cookie('sessionId', jwtSession, {
-      httpOnly: true, // only server can read cookie, not browser
-      maxAge: maxAge * 1000, // time in seconds
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' ? true : false,
-      // ^^^ enable secure https if nasa prod environment na
-    });
+      // if password doesn't match:
+      if (!isSamePassword) {
+        // response.send({ message: 'mali ka boi' });
+        response.status(404).json({ message: 'Invalid Email or Password' });
+      }
 
-    response.send({
-      data: filteredUser,
-      message: user ? 'Welcome' : 'Error, user login unsuccessful',
-    });
+      // selecting things to omit from the response:
+      const filteredUser = omit(user, ['id', 'password']);
+
+      // create jWT obj that contains info:
+      const jwtSessionObject = {
+        uid: user.id,
+        email: user.email,
+      };
+      // create JWT Session:
+      const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
+      const jwtSession = await jwt.sign(
+        jwtSessionObject,
+        process.env.JWT_SECRET,
+        {
+          expiresIn: maxAge, // this jwt will expire in 24 hours
+        }
+      );
+
+      // console.log("jwtSession: ", jwtSession);
+
+      // attach jwt to cookie:
+      response.cookie('sessionId', jwtSession, {
+        httpOnly: true, // only server can read cookie, not browser
+        maxAge: maxAge * 1000, // time in seconds
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+        // ^^^ enable secure https if nasa prod environment na
+      });
+
+      response.send({
+        data: filteredUser,
+        message: user ? 'Welcome' : 'Error, user login unsuccessful',
+      });
+    } catch {
+      response.send({
+        data: null,
+        message: 'Invalid Request - Please try again',
+      });
+    }
   }
 );
 
@@ -233,9 +247,7 @@ authRouter.post(
 authRouter.post(
   '/sign-in/username',
   [
-    body('userName')
-      .notEmpty()
-      .withMessage('Username CANNOT be empty'),
+    body('userName').notEmpty().withMessage('Username CANNOT be empty'),
     body('password')
       .notEmpty()
       .isLength({ min: 8 })
@@ -249,64 +261,73 @@ authRouter.post(
       return;
     }
 
-    const filteredBody = pick(request.body, ['userName', 'password']);
+    try {
+      const filteredBody = pick(request.body, ['userName', 'password']);
 
-    // finds the user's email in the database
-    const user = await request.app.locals.prisma.user.findUnique({
-      where: { userName: filteredBody.userName },
-    });
+      // finds the user's email in the database
+      const user = await request.app.locals.prisma.user.findUnique({
+        where: { userName: filteredBody.userName },
+      });
 
-    if (!user) {
-      response.status(404).json({ message: 'Invalid Username or Password' });
-      return;
-    }
-
-    // comparison of saved password and entered password:
-    const hashedPassword = user.password;
-    const isSamePassword = await bcrypt.compare(
-      filteredBody.password,
-      hashedPassword
-    );
-
-    // if password doesn't match:
-    if (!isSamePassword) {
-      // response.send({ message: 'mali ka boi' });
-      response.status(404).json({ message: 'Invalid Username or Password' });
-    }
-
-    // selecting things to omit from the response:
-    const filteredUser = omit(user, ['id', 'password']);
-
-    // create jWT obj that contains info:
-    const jwtSessionObject = {
-      uid: user.id,
-      userName: user.userName,
-    };
-    // create JWT Session:
-    const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
-    const jwtSession = await jwt.sign(
-      jwtSessionObject,
-      process.env.JWT_SECRET,
-      {
-        expiresIn: maxAge, // this jwt will expire in 24 hours
+      if (!user) {
+        response
+          .status(404)
+          .json({ message: 'Invalid Request - User not found' });
+        return;
       }
-    );
 
-    // console.log("jwtSession: ", jwtSession);
+      // comparison of saved password and entered password:
+      const hashedPassword = user.password;
+      const isSamePassword = await bcrypt.compare(
+        filteredBody.password,
+        hashedPassword
+      );
 
-    // attach jwt to cookie:
-    response.cookie('sessionId', jwtSession, {
-      httpOnly: true, // only server can read cookie, not browser
-      maxAge: maxAge * 1000, // time in seconds
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' ? true : false,
-      // ^^^ enable secure https if nasa prod environment na
-    });
+      // if password doesn't match:
+      if (!isSamePassword) {
+        // response.send({ message: 'mali ka boi' });
+        response.status(404).json({ message: 'Invalid Username or Password' });
+      }
 
-    response.send({
-      data: filteredUser,
-      message: user ? 'Welcome' : 'Error, user login unsuccessful',
-    });
+      // selecting things to omit from the response:
+      const filteredUser = omit(user, ['id', 'password']);
+
+      // create jWT obj that contains info:
+      const jwtSessionObject = {
+        uid: user.id,
+        userName: user.userName,
+      };
+      // create JWT Session:
+      const maxAge = 1 * 24 * 60 * 60; // time in milliseconds
+      const jwtSession = await jwt.sign(
+        jwtSessionObject,
+        process.env.JWT_SECRET,
+        {
+          expiresIn: maxAge, // this jwt will expire in 24 hours
+        }
+      );
+
+      // console.log("jwtSession: ", jwtSession);
+
+      // attach jwt to cookie:
+      response.cookie('sessionId', jwtSession, {
+        httpOnly: true, // only server can read cookie, not browser
+        maxAge: maxAge * 1000, // time in seconds
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+        // ^^^ enable secure https if nasa prod environment na
+      });
+
+      response.send({
+        data: filteredUser,
+        message: user ? 'Welcome' : 'Error, user login unsuccessful',
+      });
+    } catch {
+      response.send({
+        data: null,
+        message: 'Invalid Request - Please try again',
+      });
+    }
   }
 );
 
@@ -328,6 +349,13 @@ authRouter.put('/edit-profile', async (request, response) => {
     const userId = jwtSessionObject.uid;
 
     const filteredBody = pick(request.body, ['password', 'userName', 'bio']);
+
+    // encrypt the password and save it to the db
+    const hashedPassword = await bcrypt.hash(
+      filteredBody.password,
+      SALT_ROUNDS
+    );
+    filteredBody.password = hashedPassword;
 
     const user = await request.app.locals.prisma.user.update({
       where: { id: userId },
