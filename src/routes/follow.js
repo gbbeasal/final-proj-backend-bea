@@ -94,6 +94,7 @@ followRouter.get('/following/:userName', async (request, response) => {
   const jwtSession = cookies.sessionId;
   const userName = request.params.userName;
 
+  // specified user = follower kase sya yung nag fofollow tas pinapakita natin yung mga "following" nya
   const follower = await request.app.locals.prisma.user.findUnique({
     where: { userName: userName },
   });
@@ -144,6 +145,69 @@ followRouter.get('/following/:userName', async (request, response) => {
     response.send({
       Following: following,
       message: following ? 'ok' : 'You are not following anyone',
+    });
+  } catch {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please try again' });
+  }
+});
+
+// ============ GETTING ALL FOLLOWERS OF MY SPECIFIED USER ============:
+// Authenticated User = can see their tweets
+// Unauthenticated/Invalid JWT Session User = will be prompted to login
+
+followRouter.get('/followers/:userName', async (request, response) => {
+  const cookies = request.cookies;
+  const jwtSession = cookies.sessionId;
+  const userName = request.params.userName;
+
+  // specifed user = being followed so
+  const beingFollowed = await request.app.locals.prisma.user.findUnique({
+    where: { userName: userName },
+  });
+
+  // if specified user doesnt exist
+  if (!beingFollowed) {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - User does not exist' });
+    return;
+  }
+
+  // unauth =  you can only view max 15 followers from a user
+  if (!jwtSession) {
+    const followers = await request.app.locals.prisma.follow.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: { followingId: beingFollowed.id },
+      take: 15,
+    });
+
+    response.send({
+      Followers: followers,
+      message: followers ? 'ok' : 'error',
+    });
+    return;
+  }
+
+  try {
+    const jwtSessionObject = await jwt.verify(
+      jwtSession,
+      process.env.JWT_SECRET
+    );
+
+    const followers = await request.app.locals.prisma.follow.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: { followingId: beingFollowed.id },
+    });
+
+    response.send({
+      Followers: followers,
+      message: followers ? 'ok' : 'You are not being followed by anyone',
     });
   } catch {
     response
