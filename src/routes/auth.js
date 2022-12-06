@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 const authRouter = express.Router();
 const SALT_ROUNDS = 10;
 
-// ============== GET /myaccount ==============:
+// ============== GET MY PROFILE INFO VIA GET /myaccount ==============:
 // Authenticated User = can see their own information
 // Unauthenticated User = will be prompted to login
 
@@ -45,7 +45,7 @@ authRouter.get('/myaccount', async (request, response) => {
   }
 });
 
-// ============== POST /sign-up ==============:
+// ============== CREATE USER VIA POST /sign-up ==============:
 // only users 18+ can sign up
 authRouter.post(
   '/sign-up',
@@ -155,7 +155,9 @@ authRouter.post(
   }
 );
 
-// ============== POST /sign-in/email ==============:
+// ============== EMAIL SIGN IN VIA POST /sign-in/email ==============:
+// to sign in via email
+
 authRouter.post(
   '/sign-in/email',
   [
@@ -244,7 +246,9 @@ authRouter.post(
   }
 );
 
-// ============== POST /sign-in/username ==============:
+// ============== USERNAME LOGIN VIA POST /sign-in/username ==============:
+// to sign in via username
+
 authRouter.post(
   '/sign-in/username',
   [
@@ -332,7 +336,9 @@ authRouter.post(
   }
 );
 
-// ============== PUT /edit-profile ==============:
+// ============== EDIT PROFILE FIELDS VIA PUT /edit-profile ==============:
+// to edit fields: password, username, bio
+
 authRouter.put('/edit-profile', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;

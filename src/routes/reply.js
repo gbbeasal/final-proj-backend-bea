@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 
 const replyRouter = express.Router();
 
-// ============ GETTING ALL REPLIES ============:
+// ============ GETTING ALL MY REPLIES VIA GET /myreplies ============:
 // Authenticated User = can see their tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
@@ -43,7 +43,7 @@ replyRouter.get('/myreplies', async (request, response) => {
   }
 });
 
-// ============ GETTING ALL TWEETS AND REPLIES ============:
+// ============ GETTING ALL OF MY TWEETS AND REPLIES VIA GET /tweetsandreplies ============:
 // Authenticated User = can see their tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
@@ -84,8 +84,8 @@ replyRouter.get('/tweetsandreplies', async (request, response) => {
   }
 });
 
-// ============== GETTING ALL TWEETS AND REPLIES BY USERNAME ==============:
-// Authenticated User = can see tweets of the user they're looking at
+// ============== GETTING ALL TWEETS AND REPLIES BY USERNAME VIA GET /tweetsandreplies/:userName  ==============:
+// Authenticated User = can see the tweets and replies of a specified user
 // Unauthenticated/Invalid JWT Session User = can only see email and bio of the user they're looking at
 // if user they are looking for doesn't exist, it returns a prompt saying so
 
@@ -147,7 +147,7 @@ replyRouter.get('/tweetsandreplies/:userName', async (request, response) => {
   }
 });
 
-// ============ ADDING A REPLY ============:
+// ============ ADDING A REPLY VIA POST /tweets/:tweetId/reply  ============:
 // Authenticated User = can create their own tweet
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 replyRouter.post(

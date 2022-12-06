@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken';
 
 const tweetRouter = express.Router();
 
-// ============ GETTING ALL TWEETS ============:
-// Authenticated User = can see their tweets
+// ============ GETTING ALL TWEETS VIA GET /alltweets ============:
+// Authenticated User = can see all tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
 tweetRouter.get('/alltweets', async (request, response) => {
@@ -38,7 +38,7 @@ tweetRouter.get('/alltweets', async (request, response) => {
   }
 });
 
-// ============ GETTING ALL MY TWEETS ============:
+// ============ GETTING ALL MY TWEETS VIA /tweets ============:
 // Authenticated User = can see their tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
@@ -79,7 +79,7 @@ tweetRouter.get('/tweets', async (request, response) => {
   }
 });
 
-// ============== GET /tweets/:userName ==============:
+// ============== GETTING TWEETS BY USER VIA GET /tweets/:userName ==============:
 // Authenticated User = can see tweets of the user they're looking at
 // Unauthenticated/Invalid JWT Session User = can only see email and bio of the user they're looking at
 // if user they are looking for doesn't exist, it returns a prompt saying so
@@ -194,7 +194,7 @@ tweetRouter.post(
   }
 );
 
-// ============ DELETING A TWEET BY ID ============:
+// ============ DELETING A TWEET BY ID VIA DELETE /tweets/:tweetId ============:
 // Authenticated User = can delete their own tweet via tweetId
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 // if the tweet doesn't belong to the current user, they cannot delete it
@@ -251,10 +251,9 @@ tweetRouter.delete('/tweets/:tweetId', async (request, response) => {
   }
 });
 
-// ============ GETTING A TWEET BY ID ============:
-// Authenticated User = can delete their own tweet via tweetId
+// ============ GETTING A TWEET BY ID VIA GET /tweets/specific/:tweetId ============:
+// Authenticated User = can get their own tweet via tweetId
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
-// if the tweet doesn't belong to the current user, they cannot delete it
 
 tweetRouter.get('/tweets/specific/:tweetId', async (request, response) => {
   const cookies = request.cookies;

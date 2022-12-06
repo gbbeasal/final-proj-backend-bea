@@ -5,8 +5,8 @@ import pick from 'lodash/pick.js';
 
 const followRouter = express.Router();
 
-// ============ GETTING ALL USERS I FOLLOW ============:
-// Authenticated User = can see their tweets
+// ============ GETTING ALL USERS I FOLLOW via /usersifollow ============:
+// Authenticated User = can see the users they've followed
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
 followRouter.get('/usersifollow', async (request, response) => {
@@ -45,8 +45,8 @@ followRouter.get('/usersifollow', async (request, response) => {
   }
 });
 
-// ============ GETTING ALL USERS THAT FOLLOW ME ============:
-// Authenticated User = can see their tweets
+// ============ GETTING ALL USERS THAT FOLLOW ME VIA /usersthatfollowme ============:
+// Authenticated User = can see the users that follow them
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
 followRouter.get('/usersthatfollowme', async (request, response) => {
@@ -85,9 +85,9 @@ followRouter.get('/usersthatfollowme', async (request, response) => {
   }
 });
 
-// ============ GETTING ALL USERS MY SPECIFIED USER IS FOLLOWING ============:
-// Authenticated User = can see their tweets
-// Unauthenticated/Invalid JWT Session User = will be prompted to login
+// ============ GETTING ALL USERS MY SPECIFIED USER IS FOLLOWING VIA /following/:userName ============:
+// Authenticated User = can see the users that a user is following
+// Unauthenticated/Invalid JWT Session User = can only see up to 15 followed users
 
 followRouter.get('/following/:userName', async (request, response) => {
   const cookies = request.cookies;
@@ -153,9 +153,9 @@ followRouter.get('/following/:userName', async (request, response) => {
   }
 });
 
-// ============ GETTING ALL FOLLOWERS OF MY SPECIFIED USER ============:
-// Authenticated User = can see their tweets
-// Unauthenticated/Invalid JWT Session User = will be prompted to login
+// ============ GETTING ALL FOLLOWERS OF MY SPECIFIED USER VIA /followers/:userName ============:
+// Authenticated User = can see the followers of the specified user
+// Unauthenticated/Invalid JWT Session User = can see up to 15 followers of the specified user only
 
 followRouter.get('/followers/:userName', async (request, response) => {
   const cookies = request.cookies;
@@ -216,8 +216,8 @@ followRouter.get('/followers/:userName', async (request, response) => {
   }
 });
 
-// ============ FOLLOW AND UNFOLLOW ============:
-// Authenticated User = can follow
+// ============ FOLLOW AND UNFOLLOW VIA PUT /:userName/follow ============:
+// Authenticated User = can follow/follow
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
 followRouter.put('/:userName/follow', async (request, response) => {

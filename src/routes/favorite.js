@@ -4,8 +4,8 @@ import omit from 'lodash/omit.js';
 
 const favoriteRouter = express.Router();
 
-// ============ GETTING ALL FAVORITES ============:
-// Authenticated User = can see their tweets
+// ============ GETTING ALL FAVORITES VIA GET /myfavorites ============:
+// Authenticated User = can see their favorited tweets
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
 
 favoriteRouter.get('/myfavorites', async (request, response) => {
@@ -47,9 +47,10 @@ favoriteRouter.get('/myfavorites', async (request, response) => {
   }
 });
 
-// ============ ADDING A FAVORITE ============:
+// ============ ADDING A FAVORITE VIA PUT /tweets/:tweetId/favorite ============:
 // Authenticated User = can create their own tweet
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
+
 favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
@@ -120,7 +121,7 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
   }
 });
 
-// ============== GET /favorites/:userName ==============:
+// ============== GET A USERS FAVORITED TWEETS VIA GET /favorites/:userName ==============:
 // Authenticated User = can see tweets of the user they're looking at
 // Unauthenticated/Invalid JWT Session User = can only see email and bio of the user they're looking at
 // if user they are looking for doesn't exist, it returns a prompt saying so
