@@ -31,6 +31,14 @@
       "email": "ryanunib@gmail.com",
       "birthday": "24/12/2001",
       "password": "passwordniryanaldwin"
+    },
+    {
+      "firstName": "amanda",
+      "lastName": "del pilar",
+      "userName": "Gregorio",
+      "email": "greggy@gmail.com",
+      "birthday": "07/10/1997",
+      "password": "passwordniaj"
     }
   ]
 }

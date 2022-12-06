@@ -120,4 +120,45 @@ favoriteRouter.put('/tweets/:tweetId/favorite', async (request, response) => {
   }
 });
 
+// ============== GET /favorites/:userName ==============:
+// Authenticated User = can see tweets of the user they're looking at
+// Unauthenticated/Invalid JWT Session User = can only see email and bio of the user they're looking at
+// if user they are looking for doesn't exist, it returns a prompt saying so
+
+favoriteRouter.get('/favorites/:userName', async (request, response) => {
+  const cookies = request.cookies;
+  const jwtSession = cookies.sessionId;
+  const userName = request.params.userName;
+  // console.log(userName);
+
+  // Checks if you have a JWT Session and implements logic accordingly
+  if (!jwtSession) {
+    response
+      .status(401)
+      .send({ data: null, message: 'Invalid Request - Please login' });
+    return;
+  }
+
+  try {
+    await jwt.verify(jwtSession, process.env.JWT_SECRET);
+    // gets user info of the username entered so we can find their userId
+    const user = await request.app.locals.prisma.user.findUnique({
+      where: { userName: userName },
+    });
+
+    const favorites = await request.app.locals.prisma.favorite.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: { userId: user.id },
+    });
+    response.send({
+      favorites: favorites,
+      message: favorites ? 'ok' : 'no favorites found',
+    });
+  } catch {
+    response.status(401).send({ data: null, message: 'jwt is not valid' });
+  }
+});
+
 export default favoriteRouter;
