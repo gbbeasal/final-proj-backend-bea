@@ -27,6 +27,8 @@ model User {
   reply       Reply[]         @relation("UserReply")
   favorite    Favorite[]      @relation("UserFavorite")
   birthday    String
+  followers   Follow[]        @relation("UserFollower")
+  following   Follow[]       @relation("UserFollowing")
 }
 
 //======================
@@ -64,3 +66,14 @@ model Favorite {
   user          User          @relation("UserFavorite", fields: [userId], references: [id], onDelete: Cascade)
   @@id([userId, tweetId])
 }
+
+model Follow {
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  followerId    Int
+  follower      User          @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId    Int
+  following      User         @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  @@id([followerId, followingId])
+}
+
