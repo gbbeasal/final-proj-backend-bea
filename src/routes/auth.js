@@ -83,6 +83,7 @@ authRouter.post(
         'email',
         'birthday',
         'password',
+        'bio',
       ]);
 
       // to get age: calculate month difference from current date in time
