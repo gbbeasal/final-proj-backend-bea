@@ -47,9 +47,10 @@ const followRouter = express.Router();
 //   }
 // });
 
-// ============ ADDING A FAVORITE ============:
-// Authenticated User = can create their own tweet
+// ============ FOLLOW AND UNFOLLOW ============:
+// Authenticated User = can follow
 // Unauthenticated/Invalid JWT Session User = will be prompted to login
+
 followRouter.put('/:userName/follow', async (request, response) => {
   const cookies = request.cookies;
   const jwtSession = cookies.sessionId;
@@ -73,6 +74,15 @@ followRouter.put('/:userName/follow', async (request, response) => {
       where: { userName: userName },
     });
 
+    // cannot follow self:
+
+    if (userId == userToFollow.id) {
+      response
+        .status(401)
+        .send({ data: null, message: 'Invalid Request - You cannot follow yourself' });
+      return;
+    }
+
     // if intended user to follow does not exist, end the program
     if (!userToFollow) {
       response
@@ -81,48 +91,49 @@ followRouter.put('/:userName/follow', async (request, response) => {
       return;
     }
 
+    // check following status
+    const isFollowed = await request.app.locals.prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: userToFollow.id,
+        },
+      },
+    });
+
+    if (!isFollowed) {
+      // if not followed, create following link:
+      const follows = await request.app.locals.prisma.follow.create({
+        data: {
+          followerId: userId,
+          followingId: userToFollow.id,
+        },
+      });
+
+      response.send({
+        favorites: follows,
+        message: follows ? 'Successfully followed user' : 'Follow Unsuccessful',
+      });
+      return;
+    }
+
     // if already followed, unfollow:
-    // const isFollowed = await request.app.locals.prisma.follow.findUnique({
-    //   where: {
-    //     followerId_followingId: {
-    //       followerId: follwerId,
-    //       followingId: followingId,
-    //     },
-    //   },
-    // });
 
-
-    
-    // create following link:
-    const follows = await request.app.locals.prisma.follow.create({
-      data: {
-        followerId: userId,
-        followingId: userToFollow.id,
+    const unfollow = await request.app.locals.prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: userToFollow.id,
+        },
       },
     });
 
     response.send({
-      favorites: follows,
-      message: follows ? 'Successfully followed user' : 'Follow Unsuccessful',
+      favorites: unfollow,
+      message: unfollow
+        ? 'User successfully unfollowed'
+        : 'Unfollow Unsuccessful',
     });
-
-
-
-    // const unfavorite = await request.app.locals.prisma.favorite.delete({
-    //   where: {
-    //     userId_tweetId: {
-    //       userId: userId,
-    //       tweetId: tweetId,
-    //     },
-    //   },
-    // });
-
-    // response.send({
-    //   favorites: unfavorite,
-    //   message: unfavorite
-    //     ? 'Tweet successfully removed from favorites'
-    //     : 'Unfavorite Unsuccessful',
-    // });
   } catch {
     response
       .status(401)
